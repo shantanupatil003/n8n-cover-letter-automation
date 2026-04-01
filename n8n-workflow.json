@@ -1,0 +1,142 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "job-apply",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -80
+      ],
+      "id": "59026907-1392-44ca-9a09-cc8cc2303eb3",
+      "webhookId": "a25fe01e-087c-4397-a5af-06d77ef97629"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.body.job_url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "name": "Fetch Job Page",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        336,
+        -80
+      ],
+      "id": "d7736322-914f-4f13-a0b5-85a2b405995c"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.text }}",
+        "options": {}
+      },
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        928,
+        -80
+      ],
+      "id": "1322dd18-5e2a-4cf8-a97e-04506ce8a5b7"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a career coach. Read this job posting and write a cover letter for Shantanu Patil, an MS CS student specializing in AI/ML at Western Michigan University.\n\nJob posting:\n{{ $('Webhook').item.json.body.job_url }}\n\nWrite a professional cover letter.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        528,
+        -80
+      ],
+      "id": "dc3fabf1-b9fa-4ebe-8a81-37a99f73f657",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "=llama3.2:latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmOllama",
+      "typeVersion": 1,
+      "position": [
+        528,
+        144
+      ],
+      "id": "78f1003b-7e9e-4a35-8816-da616348753a",
+      "name": "Ollama Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "DQPdQ6ZoqEqcV0v7",
+          "name": "Ollama account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Fetch Job Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Job Page": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4c67f020cb97bcd9fae2109320f96bcfa75ecf61bffd638746f2ef0b91d98795"
+  }
+}
